@@ -1,4 +1,4 @@
-name: AWS Lambda CD by Christa kITCHEr
+name: AWS Lambda CD by Christa
 
 on:
   push:
