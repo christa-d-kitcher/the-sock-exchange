@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState, useEffect } from "react";
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -12,6 +12,43 @@ import Search from "./components/Search";
 import Promo from './components/Promo';
 
 function App() {
+
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(import.meta.env.VITE_SOCKS_API_URL);
+        if (!response.ok) {
+          throw new Error('Data could not be fetched!');
+        }
+        const json_response = await response.json();
+        setData(json_response); // assign JSON response to the data variable.
+      } catch (error) {
+        console.error('Error fetching socks:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleDelete = async (sockId) => {
+    try {
+      // Make an API request to delete the sock with the given sockId
+      const response = await fetch(`${import.meta.env.VITE_SOCKS_API_URL}/${sockId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Sock could not be deleted!');
+      }
+      // Update the state or fetch the updated data from the server
+      const updatedData = data.filter(sock => sock._id !== sockId); // Remove the deleted sock from the data array
+      setData(updatedData); // Update the state with the updated data
+    } catch (error) {
+      console.error('Error deleting sock:', error);
+    }
+  }
+
+
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -44,7 +81,7 @@ function App() {
                 <a className="nav-link disabled" aria-disabled="true">Disabled</a>
               </li>
             </ul>
-            <Search />
+            <Search setData={setData} />
           </div>
         </div>
       </nav>
@@ -55,16 +92,16 @@ function App() {
             only one will get COLD!
 
             <br></br><br></br>
-            
+
             <div><h5 className="card-title">Featured</h5></div>
             <br></br><div className="card-container d-flex flex-row justify-content-start" style={{
               gap: "20px", padding: "20px"
             }}>
-                {
-                  promo_data.map((promo) => (
-                    <Promo key={promo.id} data={promo} />
-                  ))
-                }
+              {
+                promo_data.map((promo) => (
+                  <Promo key={promo.id} data={promo} />
+                ))
+              }
             </div><br></br><hr></hr>
 
             <div className="card-container" style={{
@@ -72,13 +109,13 @@ function App() {
                 '20px'
             }}>
               {
-                sock_data.map((sock) => (
-                  <Sock key={sock.id} data={sock} />
+                data.map((sock) => (
+                  <Sock key={sock._id} data={sock} handleDelete={handleDelete} />
                 ))
               }
             </div>
             <div>
-              <Footer environment={"DEVELOPMENT"} />
+              <Footer environment={import.meta.env.VITE_ENVIRONMENT} />
             </div>
           </div>
         </div>
