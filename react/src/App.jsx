@@ -2,11 +2,14 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+
 import sock_data from './assets/sock.json';
+import promo_data from './assets/promo.json';
 
 import Sock from "./components/Sock";
 import Footer from "./components/Footer";
 import Search from "./components/Search";
+import Promo from './components/Promo';
 
 function App() {
   return (
@@ -41,7 +44,7 @@ function App() {
                 <a className="nav-link disabled" aria-disabled="true">Disabled</a>
               </li>
             </ul>
-            <Search/>
+            <Search />
           </div>
         </div>
       </nav>
@@ -50,8 +53,29 @@ function App() {
           <div className="row">
             Both socks and space rockets 🚀 will take you to new heights, but
             only one will get COLD!
-            <div className="card-container">
-              <Sock data={sock_data} />
+
+            <br></br><br></br>
+            
+            <div><h5 className="card-title">Featured</h5></div>
+            <br></br><div className="card-container d-flex flex-row justify-content-start" style={{
+              gap: "20px", padding: "20px"
+            }}>
+                {
+                  promo_data.map((promo) => (
+                    <Promo key={promo.id} data={promo} />
+                  ))
+                }
+            </div><br></br><hr></hr>
+
+            <div className="card-container" style={{
+              display: 'flex', flexWrap: 'wrap', gap:
+                '20px'
+            }}>
+              {
+                sock_data.map((sock) => (
+                  <Sock key={sock.id} data={sock} />
+                ))
+              }
             </div>
             <div>
               <Footer environment={"DEVELOPMENT"} />
