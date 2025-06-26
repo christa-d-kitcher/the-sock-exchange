@@ -108,12 +108,14 @@ app.get('/socks/:color', async (req, res) => {
                     status: 'success', 
                     message: 'Matching color socks found successfully.'
                 });
+                
             } else {
                 res.status(200).send({
                     status: 'API call was a success', 
                     message: 'API call success but no matching color socks found.'
                 });
             }
+            return fltrdSocks;
         }
     
     } catch (err) {
