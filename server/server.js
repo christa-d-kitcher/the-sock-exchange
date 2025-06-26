@@ -95,8 +95,60 @@ app.get('/socks/:color', async (req, res) => {
     try {
         
         console.log('Looking up socks which match the color:', color);
-        const socksList = []; //how do I call the generic "get" to get the list of all socks?
-        const socksObjList = socksList.json();
+
+        const sock1 = {
+            userId: "667",
+            sockDetails: {
+                size: "Small",
+                color: "Red",
+                pattern: "striped",
+                material: "Cotton",
+                condition: "New",
+                forFoot: "Right",
+            },
+            additionalFeatures: {
+                waterResistant: false,
+                padded: false,
+                antiBacterial: false,
+            },
+            addedTimestamp: "fake-timestamp1",
+        }
+        const sock2 = {
+            userId: "657",
+            sockDetails: {
+                size: "Large",
+                color: "Blue",
+                pattern: "striped",
+                material: "Cotton",
+                condition: "Used",
+                forFoot: "Left",
+            },
+            additionalFeatures: {
+                waterResistant: true,
+                padded: false,
+                antiBacterial: true,
+            },
+            addedTimestamp: "fake-timestamp2",
+        }
+        const sock3 = {
+            userId: "647",
+            sockDetails: {
+                size: "Medium",
+                color: "Red",
+                pattern: "Striped",
+                material: "Cotton",
+                condition: "New",
+                forFoot: "Right",
+            },
+            additionalFeatures: {
+                waterResistant: false,
+                padded: true,
+                antiBacterial: false,
+            },
+            addedTimestamp: "fake-timestamp3",
+        }
+
+        const socksObjList = [sock1, sock2, sock3]; 
 
         //Filtering the socks list to see if there is a match to the color 
         if(socksObjList.length !== 0) {
