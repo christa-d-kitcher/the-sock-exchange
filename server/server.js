@@ -1,21 +1,28 @@
 import express from 'express';
 import { promises as fs } from 'fs';
 const app = express();
+app.use(cors()); // Enable CORS for all routes
 const PORT = 3000;
+
+//MongoDB Lab
+import { MongoClient, ObjectId } from 'mongodb';
+import dotenv from 'dotenv';
+import cors from 'cors';
+
+//Read environment variables values from .env
+dotenv.config();
+const url = process.env.MONGO_DB_URL;
+const dbName = process.env.MONGO_DB;
+const collectionName = process.env.MONGO_DB_COLLECTION;
 
 // Endpoint to read and send JSON file content
 app.get('/socks', async (req, res) => {
     try {
-        // Console log the entire request object
-        console.log(req);
-        // Console log specific parts of the request
-        console.log("Headers:", req.headers);
-        console.log("URL:", req.url);
-        console.log("Method:", req.method);
-        console.log("Query parameters:", req.query);
-        const data = await fs.readFile('../data/socks.json', 'utf8');
-        const jsonObj = JSON.parse(data);
-        res.json(jsonObj);
+        const client = await MongoClient.connect(url);
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+        const socks = await collection.find({}).toArray();
+        res.json(socks);
     } catch (err) {
         console.error("Error:", err);
         res.status(500).send("Hmmm, something smells... No socks for you! ☹");
@@ -30,40 +37,41 @@ app.listen(PORT, () => {
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-app.post('/socks', async (req, res) => {
-    try {
-        // Obligatory reference to POST Malone
-        console.log("If POST Malone were a sock, he'd be the one with the most colorful pattern.");
-        // Simulate creating a user
-        const { username, email } = req.body;
-        if (!username || !email) {
-            // Bad request if username or email is missing
-            return res.status(400).send({ error: 'Username and email are required.' });
-        }
-        // Respond with the created user information and a 201 Created status
-        res.status(201).send({
-            status: 'success',
-            location: 'http://localhost:3000/users/1234', // This URL should point to the newly created user
-            message: 'User created successfully.'
-        });
-    } catch (err) {
-        console.error("Error:", err);
-        res.status(500).send("Hmmm, something smells... No socks for you! ☹");
-    }
-});
+//For previous lab exercise
+// app.post('/socks', async (req, res) => {
+//     try {
+//         // Obligatory reference to POST Malone
+//         console.log("If POST Malone were a sock, he'd be the one with the most colorful pattern.");
+//         // Simulate creating a user
+//         const { username, email } = req.body;
+//         if (!username || !email) {
+//             // Bad request if username or email is missing
+//             return res.status(400).send({ error: 'Username and email are required.' });
+//         }
+//         // Respond with the created user information and a 201 Created status
+//         res.status(201).send({
+//             status: 'success',
+//             location: 'http://localhost:3000/users/1234', // This URL should point to the newly created user
+//             message: 'User created successfully.'
+//         });
+//     } catch (err) {
+//         console.error("Error:", err);
+//         res.status(500).send("Hmmm, something smells... No socks for you! ☹");
+//     }
+// });
 
 
-//Delete route handler
-app.delete('/socks/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        console.log('Deleting sock with ID:', id);
-        res.status(200).send('Sock deleted successfully');
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).send('Hmm, something doesn\'t smell right... Error deleting sock');
-    }
-});
+// //Delete route handler
+// app.delete('/socks/:id', async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         console.log('Deleting sock with ID:', id);
+//         res.status(200).send('Sock deleted successfully');
+//     } catch (err) {
+//         console.error('Error:', err);
+//         res.status(500).send('Hmm, something doesn\'t smell right... Error deleting sock');
+//     }
+// });
 
 //Put route handler 
 app.put('/user/:id', async (req, res) => {
@@ -89,11 +97,11 @@ app.get('/socks/:color', async (req, res) => {
     const { color } = req.params;
 
     if (!color) {
-        return res.status(400).json({error: 'Color parameter is required.'});
+        return res.status(400).json({ error: 'Color parameter is required.' });
     }
 
     try {
-        
+
         console.log('Looking up socks which match the color:', color);
 
         const sock1 = {
@@ -148,33 +156,134 @@ app.get('/socks/:color', async (req, res) => {
             addedTimestamp: "fake-timestamp3",
         }
 
-        const socksObjList = [sock1, sock2, sock3]; 
+        const socksObjList = [sock1, sock2, sock3];
 
         //Filtering the socks list to see if there is a match to the color 
-        if(socksObjList.length !== 0) {
+        if (socksObjList.length !== 0) {
 
             const fltrdSocks = socksObjList.filter(sock => sock.sockDetails.color === color);
 
             if (fltrdSocks.length !== 0) {
                 res.status(200).send({
-                    status: 'success', 
+                    status: 'success',
                     message: 'Matching color socks found successfully.'
                 });
-                
+
             } else {
                 res.status(200).send({
-                    status: 'API call was a success', 
+                    status: 'API call was a success',
                     message: 'API call success but no matching color socks found.'
                 });
             }
             return fltrdSocks;
         }
-    
+
     } catch (err) {
         console.error("Error:", err);
         res.status(404).send(`No ${color} socks were found ☹`);
     }
 });
+
+
+//Route handler that can search based on a color value
+app.post('/socks/search', async (req, res) => {
+
+    const color = req.body.searchTerm;
+    //console.log(req.body);
+
+    if (!color) {
+        return res.status(400).json({ error: 'Color parameter is required.' });
+    }
+    try {
+        //Adding code that can search MongoDB based on a color value from the Search text box.
+        const client = await MongoClient.connect(url);
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+        const socks = await collection.find({ "sockDetails.color": color }).toArray();
+        //console.log(`${color} socks: ` + JSON.stringify(socks));
+        res.json(socks)
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).send('Hmm, something doesn\'t smell right... Error searching for socks');
+    }
+});
+
+//Route handler that can delete a sock when the delete button is clicked.
+app.delete('/socks/:id', async (req, res) => {
+
+    const sockID = req.params.id;
+
+    try {
+        // TODO: Add code that delete a sock when its delete button is clicked.
+        const client = await MongoClient.connect(url);
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+        const filter = { _id: new ObjectId(sockID) };
+        //const status = await collection.deleteOne(filter);
+        console.log(status);
+        res.json({ message: `Sock with id ${sockID} deleted successfully` });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).send('Hmm, something doesn\'t smell right... Error deleting sock');
+    }
+});
+
+//Route handler that adds a sock to MongoDB when a new sock is submitted using the Add Sock form.
+app.post('/socks', async (req, res) => {
+
+    console.log("starting to post sock");
+    const sockRes = req.body;
+
+    const newSock = new Object(sockRes);
+    console.log(sockRes);
+
+    // const newSock = {
+    //     userId: sockRes.userId,
+    //     sockDetails: {
+    //         size: sockRes.sockDetails.size,
+    //         color:sockRes.sockDetails.color,
+    //         pattern: sockRes.sockDetails.pattern,
+    //         material: sockRes.sockDetails.material,
+    //         condition: sockRes.sockDetails.condition,
+    //         forFoot: sockRes.sockDetails.forFoot,
+    //     },
+    //     additionalFeatures: {
+    //         waterResistant: sockRes.additionalFeatures.waterResistant,
+    //         padded: sockRes.additionalFeatures.padded,
+    //         antiBacterial: sockRes.additionalFeatures.antiBacterial
+    //     },
+    //     addedTimestamp: sockRes.addedTimestamp,
+    // }
+
+    try {
+        // TODO: Add code that adds a sock when a new sock is posted using the Add Sock form.
+        const client = await MongoClient.connect(url);
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+        const status = await collection.insertOne(newSock);
+        console.log(status);
+        res.json({ message: `Sock for userId ${newSock.userId} added successfully` });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).send('Hmm, something doesn\'t smell right... Error adding sock');
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
