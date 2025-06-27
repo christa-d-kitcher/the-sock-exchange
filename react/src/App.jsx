@@ -10,9 +10,10 @@ import Footer from "./components/Footer";
 import Search from "./components/Search";
 import Promo from './components/Promo';
 import Home from "./components/Home";
-import About from "./components/About"; 
+import About from "./components/About";
 import AddSock from "./components/AddSock";
 import Featured from "./components/Featured";
+import LoginForm from "./components/LoginForm";
 
 import {
   BrowserRouter as Router,
@@ -20,6 +21,8 @@ import {
   Routes,
   Link
 } from "react-router-dom";
+import RequireAuth from "./components/RequireAuth";
+import { AuthProvider } from "./hooks/AuthContext";
 
 function App() {
 
@@ -100,12 +103,19 @@ function App() {
               <br></br><br></br>
               <Featured promo_data={promo_data} />
               <hr></hr>
+              <AuthProvider>
+                <Routes>
+                  <Route exact path="/" element={<Home data={data} handleDelete={handleDelete} />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/addsock" element={
+                    <RequireAuth>
+                      <AddSock/>
+                    </RequireAuth>
+                  } />
+                  <Route path="/Login" element={<LoginForm />} />
+                </Routes>
+              </AuthProvider>
 
-              <Routes>
-                <Route exact path="/" element={<Home data={data} handleDelete={handleDelete} />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/addsock" element={<AddSock data={data} setData={setData}/>} />
-              </Routes>
 
               <div>
                 <Footer environment={import.meta.env.VITE_ENVIRONMENT} />

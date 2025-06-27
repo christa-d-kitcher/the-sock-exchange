@@ -9,11 +9,29 @@ import { MongoClient, ObjectId } from 'mongodb';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
+import pg from 'pg';
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+
 //Read environment variables values from .env
 dotenv.config();
 const url = process.env.MONGO_DB_URL;
 const dbName = process.env.MONGO_DB;
 const collectionName = process.env.MONGO_DB_COLLECTION;
+
+const { Pool } = pg;
+
+// PostgreSQL pool configuration
+const pool = new Pool({
+    user: 'postgres',
+    host: process.env.POSTGRES_HOST,
+    database: process.env.POSTGRES_DB,
+    password: 'postgres',
+    port: 5432,
+});
+
+
 
 // Endpoint to read and send JSON file content
 app.get('/socks', async (req, res) => {
@@ -34,31 +52,49 @@ app.listen(PORT, () => {
 });
 
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+
+
+//route handler to verify correct username and password
+app.post('/socks/login', async (req, res) => {
+    console.log(req.body);
+    const { username, password } = req.body;
+    try {
+        const result = await
+            pool.query('SELECT uid FROM users WHERE username = $1 AND password = $2',
+                [username, password]);
+        if (result.rows.length > 0) {
+            res.status(200).json({ uid: result.rows[0].uid });
+        } else {
+            res.status(401).json({ message: 'Authentication failed' });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
 //For previous lab exercise
-// app.post('/socks', async (req, res) => {
-//     try {
-//         // Obligatory reference to POST Malone
-//         console.log("If POST Malone were a sock, he'd be the one with the most colorful pattern.");
-//         // Simulate creating a user
-//         const { username, email } = req.body;
-//         if (!username || !email) {
-//             // Bad request if username or email is missing
-//             return res.status(400).send({ error: 'Username and email are required.' });
-//         }
-//         // Respond with the created user information and a 201 Created status
-//         res.status(201).send({
-//             status: 'success',
-//             location: 'http://localhost:3000/users/1234', // This URL should point to the newly created user
-//             message: 'User created successfully.'
-//         });
-//     } catch (err) {
-//         console.error("Error:", err);
-//         res.status(500).send("Hmmm, something smells... No socks for you! ☹");
-//     }
-// });
+app.post('/socks', async (req, res) => {
+    try {
+        // Obligatory reference to POST Malone
+        console.log("If POST Malone were a sock, he'd be the one with the most colorful pattern.");
+        // Simulate creating a user
+        const { username, email } = req.body;
+        if (!username || !email) {
+            // Bad request if username or email is missing
+            return res.status(400).send({ error: 'Username and email are required.' });
+        }
+        // Respond with the created user information and a 201 Created status
+        res.status(201).send({
+            status: 'success',
+            location: 'http://localhost:3000/users/1234', // This URL should point to the newly created user
+            message: 'User created successfully.'
+        });
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).send("Hmmm, something smells... No socks for you! ☹");
+    }
+});
 
 
 // //Delete route handler
@@ -229,15 +265,47 @@ app.delete('/socks/:id', async (req, res) => {
 });
 
 //Route handler that adds a sock to MongoDB when a new sock is submitted using the Add Sock form.
-app.post('/socks', async (req, res) => {
+// app.post('/socks', async (req, res) => {
 
-    console.log("starting to post sock");
-    const sockRes = req.body;
+//     console.log("starting to post sock");
+//     const sockRes = req.body;
 
-    const newSock = new Object(sockRes);
-    console.log(sockRes);
+//     const newSock = new Object(sockRes);
+//     console.log(sockRes);
 
-    // const newSock = {
+
+//     try {
+//         // TODO: Add code that adds a sock when a new sock is posted using the Add Sock form.
+//         const client = await MongoClient.connect(url);
+//         const db = client.db(dbName);
+//         const collection = db.collection(collectionName);
+//         const status = await collection.insertOne(newSock);
+//         console.log(status);
+//         res.json({ message: `Sock for userId ${newSock.userId} added successfully` });
+//     } catch (err) {
+//         console.error('Error:', err);
+//         res.status(500).send('Hmm, something doesn\'t smell right... Error adding sock');
+//     }
+// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ // const newSock = {
     //     userId: sockRes.userId,
     //     sockDetails: {
     //         size: sockRes.sockDetails.size,
@@ -254,37 +322,6 @@ app.post('/socks', async (req, res) => {
     //     },
     //     addedTimestamp: sockRes.addedTimestamp,
     // }
-
-    try {
-        // TODO: Add code that adds a sock when a new sock is posted using the Add Sock form.
-        const client = await MongoClient.connect(url);
-        const db = client.db(dbName);
-        const collection = db.collection(collectionName);
-        const status = await collection.insertOne(newSock);
-        console.log(status);
-        res.json({ message: `Sock for userId ${newSock.userId} added successfully` });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).send('Hmm, something doesn\'t smell right... Error adding sock');
-    }
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
